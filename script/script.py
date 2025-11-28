@@ -1,5 +1,6 @@
 import cv2
 from discord_webhook import DiscordWebhook
+from elevate import elevate
 import json
 import os
 import schedule
@@ -111,9 +112,10 @@ def job():
 
     print("Job finished!")
 
+elevate()
 job()
 
-schedule.every(20).to(40).minutes.do(job)
+schedule.every(60).to(120).minutes.do(job)
 while True:
     schedule.run_pending()
     time.sleep(1)

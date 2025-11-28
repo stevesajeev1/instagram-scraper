@@ -100,7 +100,7 @@ def job():
     # Run scraper
     print("Running scraper...")
     try:
-        subprocess.run(["docker", "compose", "run", "browser"], check=True)
+        subprocess.run(["docker", "compose", "run", "--rm", "browser"], check=True)
     except subprocess.CalledProcessError as e:
         print("Scraper failed:", e)
         return
@@ -111,6 +111,7 @@ def job():
 
     print("Job finished!")
 
+job()
 
 schedule.every(20).to(40).minutes.do(job)
 while True:

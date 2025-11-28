@@ -1,0 +1,4 @@
+{
+    "accounts": [], # List of IG usernames
+    "webhook": "" # Discord webhook URL for notifications
+}

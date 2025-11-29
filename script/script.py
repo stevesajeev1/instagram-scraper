@@ -5,7 +5,7 @@ import json
 import os
 import schedule
 import shutil
-from skimage.metrics import structural_similarity as ssim
+from skimage.metrics import structural_similarity
 import subprocess
 import time
 
@@ -16,9 +16,9 @@ with open('../config.json') as f:
     webhook_url = json.load(f)['webhook']
 
 
-def cleanup_dir(dir):
-    for dir in os.listdir(dir):
-        dirpath = os.path.join(dir, dir)
+def cleanup_dir(parent_dir):
+    for dir in os.listdir(parent_dir):
+        dirpath = os.path.join(parent_dir, dir)
 
         if os.path.isdir(dirpath):
             shutil.rmtree(dirpath) 
@@ -29,7 +29,7 @@ def copy_dir(src, dest):
         dirpath = os.path.join(src, dir)
 
         if os.path.isdir(dirpath):
-            shutil.copytree(dirpath, dest, dirs_exist_ok=True)
+            shutil.move(dirpath, dest)
 
 
 def send_file(filepath):
@@ -43,7 +43,7 @@ def get_image_similarity(img1_path, img2_path) -> float:
     img1 = cv2.imread(img1_path, cv2.IMREAD_GRAYSCALE)
     img2 = cv2.imread(img2_path, cv2.IMREAD_GRAYSCALE)
 
-    score = ssim(img1, img2)
+    score = structural_similarity(img1, img2)
     return score # type: ignore
 
 
@@ -68,6 +68,7 @@ def compare_output(new, old):
 
         # Determine which posts are new by comparing images
         new_posts = []
+        max_similarities = []
         for new_file in new_files:
             new_file_path = os.path.join(new_dirpath, new_file)
 
@@ -85,13 +86,14 @@ def compare_output(new, old):
 
             if is_new:
                 new_posts.append(new_file)
+                max_similarities.append(max_similarity)
 
         if new_posts:
             print(f"New posts by {dir}")
-            DiscordWebhook(url=webhook_url, content=f"New posts by {dir} (max similarity {max_similarity})").execute()
-            for file in new_posts:
+            DiscordWebhook(url=webhook_url, content=f"New posts by {dir}").execute()
+            for file, sim in zip(new_posts, max_similarities):
+                DiscordWebhook(url=webhook_url, content=f"Similarity: {sim}").execute()
                 send_file(os.path.join(new_dirpath, file))
-                pass
         else:
             print(f"No new posts by {dir}")
 
@@ -101,7 +103,6 @@ def job():
     print("Saving previous output...")
     cleanup_dir(PREVIOUS_DIR)
     copy_dir(OUTPUT_DIR, PREVIOUS_DIR)
-    cleanup_dir(OUTPUT_DIR)
 
     # Run scraper
     print("Running scraper...")

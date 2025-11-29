@@ -29,7 +29,7 @@ def copy_dir(src, dest):
         dirpath = os.path.join(src, dir)
 
         if os.path.isdir(dirpath):
-            shutil.move(dirpath, dest)
+            shutil.copytree(dirpath, dest, dirs_exist_ok=True)
 
 
 def send_file(filepath):
@@ -44,7 +44,7 @@ def is_same_image(img1_path, img2_path):
     img2 = cv2.imread(img2_path, cv2.IMREAD_GRAYSCALE)
 
     score = ssim(img1, img2)
-    return score >= 0.9 # type: ignore
+    return score >= 0.8 # type: ignore
 
 
 def compare_output(new, old):

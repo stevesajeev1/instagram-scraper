@@ -39,12 +39,12 @@ def send_file(filepath):
         webhook.execute()
 
 
-def is_same_image(img1_path, img2_path):
+def get_image_similarity(img1_path, img2_path) -> float:
     img1 = cv2.imread(img1_path, cv2.IMREAD_GRAYSCALE)
     img2 = cv2.imread(img2_path, cv2.IMREAD_GRAYSCALE)
 
     score = ssim(img1, img2)
-    return score >= 0.8 # type: ignore
+    return score # type: ignore
 
 
 def compare_output(new, old):
@@ -73,9 +73,13 @@ def compare_output(new, old):
 
             # Check if the new post exists in any old post
             is_new = True
+            max_similarity = 0
             for old_file in old_files:
                 old_file_path = os.path.join(old_dirpath, old_file)
-                if is_same_image(new_file_path, old_file_path):
+
+                similarity = get_image_similarity(new_file_path, old_file_path)
+                max_similarity = max(max_similarity, similarity)
+                if similarity > 0.7:
                     is_new = False
                     break
 
@@ -84,7 +88,7 @@ def compare_output(new, old):
 
         if new_posts:
             print(f"New posts by {dir}")
-            DiscordWebhook(url=webhook_url, content=f"New posts by {dir}").execute()
+            DiscordWebhook(url=webhook_url, content=f"New posts by {dir} (max similarity {max_similarity})").execute()
             for file in new_posts:
                 send_file(os.path.join(new_dirpath, file))
                 pass
@@ -97,6 +101,7 @@ def job():
     print("Saving previous output...")
     cleanup_dir(PREVIOUS_DIR)
     copy_dir(OUTPUT_DIR, PREVIOUS_DIR)
+    cleanup_dir(OUTPUT_DIR)
 
     # Run scraper
     print("Running scraper...")

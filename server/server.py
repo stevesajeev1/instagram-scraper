@@ -80,6 +80,15 @@ def screenshot():
     socketio.emit("screenshot")
     return "ok"
 
+@app.route("/retry")
+def retry():
+    global loaded, current_account, screenshot_ready, screenshot_finished, finished
+    loaded = False
+    current_account = None
+    screenshot_ready = False
+    screenshot_finished = False
+    finished = False
+
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000, debug=True, allow_unsafe_werkzeug=True)

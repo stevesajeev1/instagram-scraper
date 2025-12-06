@@ -80,7 +80,7 @@ def compare_output(new, old, notify):
 
                 similarity = get_image_similarity(new_file_path, old_file_path)
                 max_similarity = max(max_similarity, similarity)
-                if similarity > 0.7:
+                if similarity > 0.9:
                     is_new = False
                     break
 

@@ -11,3 +11,6 @@
 #TabsToolbar {visibility: collapse;}
 #navigator-toolbox {visibility: collapse;}
 browser {margin-right: -14px; margin-bottom: -14px;}
+
+/* hide all status messages */
+#statuspanel {opacity: 0 !important;}

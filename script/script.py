@@ -59,9 +59,10 @@ def compare_output(new, old, notify):
         # First-time account: send everything
         if not os.path.isdir(old_dirpath):
             print(f"New posts by {dir}")
-            DiscordWebhook(url=webhook_url, content=f"New posts by {dir}").execute()
-            for file in new_files:
-                send_file(os.path.join(new_dirpath, file))
+            if notify:
+                DiscordWebhook(url=webhook_url, content=f"New posts by {dir}").execute()
+                for file in new_files:
+                    send_file(os.path.join(new_dirpath, file))
             continue
 
         old_files = os.listdir(old_dirpath)

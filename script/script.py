@@ -32,9 +32,9 @@ def copy_dir(src, dest):
             shutil.move(dirpath, dest)
 
 
-def send_file(filepath):
+def send_file(username, filepath):
     with open(filepath, "rb") as f:
-        webhook = DiscordWebhook(url=webhook_url)
+        webhook = DiscordWebhook(url=webhook_url, username=username)
         webhook.add_file(file=f.read(), filename="post.png")
         webhook.execute()
 
@@ -58,11 +58,10 @@ def compare_output(new, old, notify):
 
         # First-time account: send everything
         if not os.path.isdir(old_dirpath):
-            print(f"New posts by {dir}")
+            print(f"First time seeing account: {dir}")
             if notify:
-                DiscordWebhook(url=webhook_url, content=f"New posts by {dir}").execute()
                 for file in new_files:
-                    send_file(os.path.join(new_dirpath, file))
+                    send_file(dir, os.path.join(new_dirpath, file))
             continue
 
         old_files = os.listdir(old_dirpath)
@@ -90,12 +89,10 @@ def compare_output(new, old, notify):
                 max_similarities.append(max_similarity)
 
         if new_posts:
-            print(f"New posts by {dir}")
             if notify:
-                DiscordWebhook(url=webhook_url, content=f"New posts by {dir}").execute()
                 for file, sim in zip(new_posts, max_similarities):
-                    DiscordWebhook(url=webhook_url, content=f"Similarity: {sim}").execute()
-                    send_file(os.path.join(new_dirpath, file))
+                    print(f"New post by {dir}, similarity: {sim}")
+                    send_file(dir, os.path.join(new_dirpath, file))
         else:
             print(f"No new posts by {dir}")
 

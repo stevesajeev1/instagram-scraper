@@ -47,7 +47,7 @@ def get_image_similarity(img1_path, img2_path) -> float:
     return score # type: ignore
 
 
-def compare_output(new, old):
+def compare_output(new, old, notify):
     for dir in os.listdir(new):
         new_dirpath = os.path.join(new, dir)
         if not os.path.isdir(new_dirpath):
@@ -59,9 +59,10 @@ def compare_output(new, old):
         # First-time account: send everything
         if not os.path.isdir(old_dirpath):
             print(f"New posts by {dir}")
-            DiscordWebhook(url=webhook_url, content=f"New posts by {dir}").execute()
-            for file in new_files:
-                send_file(os.path.join(new_dirpath, file))
+            if notify:
+                DiscordWebhook(url=webhook_url, content=f"New posts by {dir}").execute()
+                for file in new_files:
+                    send_file(os.path.join(new_dirpath, file))
             continue
 
         old_files = os.listdir(old_dirpath)
@@ -80,7 +81,7 @@ def compare_output(new, old):
 
                 similarity = get_image_similarity(new_file_path, old_file_path)
                 max_similarity = max(max_similarity, similarity)
-                if similarity > 0.7:
+                if similarity > 0.9:
                     is_new = False
                     break
 
@@ -90,15 +91,16 @@ def compare_output(new, old):
 
         if new_posts:
             print(f"New posts by {dir}")
-            DiscordWebhook(url=webhook_url, content=f"New posts by {dir}").execute()
-            for file, sim in zip(new_posts, max_similarities):
-                DiscordWebhook(url=webhook_url, content=f"Similarity: {sim}").execute()
-                send_file(os.path.join(new_dirpath, file))
+            if notify:
+                DiscordWebhook(url=webhook_url, content=f"New posts by {dir}").execute()
+                for file, sim in zip(new_posts, max_similarities):
+                    DiscordWebhook(url=webhook_url, content=f"Similarity: {sim}").execute()
+                    send_file(os.path.join(new_dirpath, file))
         else:
             print(f"No new posts by {dir}")
 
 
-def job():
+def job(notify=True):
     # Copy output to previous output
     print("Saving previous output...")
     cleanup_dir(PREVIOUS_DIR)
@@ -114,14 +116,14 @@ def job():
 
     # Compare images
     print("Comparing output...")
-    compare_output(OUTPUT_DIR, PREVIOUS_DIR)
+    compare_output(OUTPUT_DIR, PREVIOUS_DIR, notify)
 
     print("Job finished!")
 
 elevate()
-job()
+job(False)
 
-schedule.every(60).to(120).minutes.do(job)
+schedule.every(30).to(90).minutes.do(job)
 while True:
     schedule.run_pending()
     time.sleep(1)

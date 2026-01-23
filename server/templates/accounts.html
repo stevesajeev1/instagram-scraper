@@ -32,7 +32,7 @@
                             observer.disconnect();
                             resolve();
                         }
-                    }, 5000);
+                    }, 60 * 1000);
                 });
 
                 observer.observe(document.documentElement);

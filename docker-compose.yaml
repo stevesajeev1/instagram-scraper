@@ -3,7 +3,6 @@ services:
     build:
       context: ./browser
       dockerfile: Dockerfile
-    container_name: browser
     volumes:
       - ./output:/output
     environment:

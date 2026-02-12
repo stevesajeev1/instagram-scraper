@@ -1,0 +1,17 @@
+{"timestamp":1474007365,"category":"session_restore","name":"backup_can_be_loaded_session_file","extra":{"loadfail_reason":"N/A","can_load":"true","glean_timestamp":"1770568459729","path_key":"clean"}}
+{"timestamp":1474007365,"category":"session_restore","name":"backup_can_be_loaded_session_file","extra":{"can_load":"true","path_key":"clean","loadfail_reason":"N/A","glean_timestamp":"1770568459729"}}
+{"timestamp":1474007366,"category":"session_restore","name":"shutdown_success_session_startup","extra":{"shutdown_reason":"N/A","glean_timestamp":"1770568459729","shutdown_ok":"false"}}
+{"timestamp":1474007663,"category":"webcompatreporting","name":"reason_dropdown","extra":{"glean_timestamp":"1770568460026","setting":"required"}}
+{"timestamp":1474007811,"category":"network.dns","name":"trr_confirmation_context","extra":{"time":"575.739300","value":"2","results":"+","contextReason":"","trigger":"uri-change","glean_timestamp":"1770568460174","attemptCount":"1","networkID":"B3ZB3D1X7z+Q9I3x+9fud+70s9s=","captivePortal":"1"}}
+{"timestamp":1474007851,"category":"nimbus_events","name":"startup_database_consistency","extra":{"trigger":"startup","store_active_count":"0","db_active_count":"0","total_db_count":"0","glean_timestamp":"1770568460214","primary":"jsonfile","total_store_count":"37"}}
+{"timestamp":1474007870,"category":"jsonfile","name":"load_autofillprofiles","extra":{"glean_timestamp":"1770568460234","value":"error_notfounderror"}}
+{"timestamp":1474007920,"category":"doh","name":"state_enabled","extra":{"glean_timestamp":"1770568460283","value":"null"}}
+{"timestamp":1474007920,"category":"doh","name":"evaluate_v2_heuristics","extra":{"platform":"","canaries":"","captiveState":"not_captive","enterprise":"","steeredProvider":"","networkID":"BGNGnJ8WEHwecHlxAv4Y9KUKgg1LexD55aGZ7Bhq3oo=","filtering":"","value":"enable_doh","evaluateReason":"startup","glean_timestamp":"1770568460283"}}
+{"timestamp":1474007927,"category":"nimbus_events","name":"remote_settings_sync_error","extra":{"reason":"backwards-sync","collection":"nimbus-desktop-experiments","trigger":"enabled","glean_timestamp":"1770568460290","force_sync":"false"}}
+{"timestamp":1474007928,"category":"nimbus_events","name":"is_ready","extra":{"glean_timestamp":"1770568460291"}}
+{"timestamp":1474007937,"category":"network.dns","name":"trr_confirmation_context","extra":{"captivePortal":"1","glean_timestamp":"1770568460300","contextReason":"pref-change","results":"+","networkID":"B3ZB3D1X7z+Q9I3x+9fud+70s9s=","value":"2","trigger":"pref-change","attemptCount":"1","time":"23.476200"}}
+{"timestamp":1474007981,"category":"containers","name":"container_profile_loaded","extra":{"containers":"4","glean_timestamp":"1770568460344"}}
+{"timestamp":1474008033,"category":"jsonfile","name":"load_logins","extra":{"glean_timestamp":"1770568460397","value":"error_notfounderror"}}
+{"timestamp":1474008036,"category":"upgrade_dialog","name":"trigger_reason","extra":{"value":"not-major","glean_timestamp":"1770568460400"}}
+{"timestamp":1474013012,"category":"media","name":"error","extra":{"error_type":"SrcNotSupportedErr","error_name":"NS_ERROR_DOM_MEDIA_NOT_SUPPORTED_ERR","glean_timestamp":"1770568467789"}}
+{"timestamp":1474015455,"category":"doh","name":"state_shutdown","extra":{"glean_timestamp":"1770568467819","value":"null"}}

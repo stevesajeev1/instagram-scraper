@@ -13,9 +13,8 @@ RUN apt-get update && \
     apt-get install -y firefox xvfb imagemagick curl && \
     rm -rf /var/lib/apt/lists/*
 
-COPY profile /profile
+COPY profiles /profiles
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
-
-ENTRYPOINT ["/entrypoint.sh"]
+CMD ["sh", "/entrypoint.sh"]

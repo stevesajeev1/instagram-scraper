@@ -1,6 +1,6 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import cv2
 from discord_webhook import DiscordWebhook
-from elevate import elevate
 import json
 import os
 import schedule
@@ -27,16 +27,42 @@ def cleanup_dir(parent_dir):
 def copy_dir(src, dest):
     for dir in os.listdir(src):
         dirpath = os.path.join(src, dir)
+        if not os.path.isdir(dirpath):
+            continue
 
-        if os.path.isdir(dirpath):
-            shutil.move(dirpath, dest)
+        shutil.move(dirpath, dest)
+
+        new_dirpath = os.path.join(dest, dir)
+        for file in os.listdir(new_dirpath):
+            if file.startswith("captions-"):
+                filepath = os.path.join(new_dirpath, file)
+                os.remove(filepath)
 
 
-def send_file(username, filepath):
-    with open(filepath, "rb") as f:
-        webhook = DiscordWebhook(url=webhook_url, username=username)
-        webhook.add_file(file=f.read(), filename="post.png")
-        webhook.execute()
+def run_scraper(profile):
+    subprocess.run(
+        [
+            "docker", "compose", "run",
+            "--rm", "--no-deps",
+            "-e", f"PROFILE={profile}",
+            "browser"
+        ],
+        check=True
+    )
+
+
+def send_post(username, dir, filepaths):
+    post_filepath = os.path.join(dir, filepaths[0])
+    caption_filepath = os.path.join(dir, filepaths[1])
+    with open(post_filepath, "rb") as f:
+        post = f.read()
+    with open(caption_filepath, "rb") as f:
+        caption = f.read()
+
+    webhook = DiscordWebhook(url=webhook_url, username=username)
+    webhook.add_file(file=post, filename="post.png")
+    webhook.add_file(file=caption, filename="caption.png")
+    webhook.execute()
 
 
 def get_image_similarity(img1_path, img2_path) -> float:
@@ -54,14 +80,18 @@ def compare_output(new, old, notify):
             continue
 
         old_dirpath = os.path.join(old, dir)
-        new_files = os.listdir(new_dirpath)
+
+        files = os.listdir(new_dirpath)
+        posts_files = sorted(f for f in files if f.startswith("posts-"))
+        captions_files = sorted(f for f in files if f.startswith("captions-"))
+        new_files = list(zip(posts_files, captions_files))
 
         # First-time account: send everything
         if not os.path.isdir(old_dirpath):
             print(f"First time seeing account: {dir}")
             if notify:
                 for file in new_files:
-                    send_file(dir, os.path.join(new_dirpath, file))
+                    send_post(dir, new_dirpath, file)
             continue
 
         old_files = os.listdir(old_dirpath)
@@ -70,7 +100,7 @@ def compare_output(new, old, notify):
         new_posts = []
         max_similarities = []
         for new_file in new_files:
-            new_file_path = os.path.join(new_dirpath, new_file)
+            new_file_path = os.path.join(new_dirpath, new_file[0])
 
             # Check if the new post exists in any old post
             is_new = True
@@ -92,7 +122,7 @@ def compare_output(new, old, notify):
             if notify:
                 for file, sim in zip(new_posts, max_similarities):
                     print(f"New post by {dir}, similarity: {sim}")
-                    send_file(dir, os.path.join(new_dirpath, file))
+                    send_post(dir, new_dirpath, file)
         else:
             print(f"No new posts by {dir}")
 
@@ -104,12 +134,15 @@ def job(notify=True):
     copy_dir(OUTPUT_DIR, PREVIOUS_DIR)
 
     # Run scraper
-    print("Running scraper...")
-    try:
-        subprocess.run(["docker", "compose", "run", "--rm", "browser"], check=True)
-    except subprocess.CalledProcessError as e:
-        print("Scraper failed:", e)
-        return
+    print("Running scrapers...")
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        futures = [executor.submit(run_scraper, "posts"), executor.submit(run_scraper, "captions")]
+        for f in as_completed(futures):
+            try:
+                f.result()
+            except subprocess.CalledProcessError as e:
+                print("Scraper failed:", e)
+                return
 
     # Compare images
     print("Comparing output...")
@@ -117,7 +150,7 @@ def job(notify=True):
 
     print("Job finished!")
 
-elevate()
+subprocess.run(["docker", "compose", "up", "-d", "server"])
 job(False)
 
 schedule.every(30).to(90).minutes.do(job)

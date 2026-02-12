@@ -2,11 +2,15 @@
 set -e
 
 BASE_URL="http://server:5000"
-URL="$BASE_URL/accounts"
-PROFILE_DIR="/profile"
 SCREENSHOT_DIR="/output"
 SIZE=1920
-TIMEOUT=120
+TIMEOUT=$((15 * 60))
+
+URL="$BASE_URL/accounts/$PROFILE"
+PROFILE_DIR="/profiles/$PROFILE"
+curl() {
+    command curl -H "X-Profile: $PROFILE" "$@"
+}
 
 ###############################################################################
 # Timeout Helpers
@@ -17,15 +21,18 @@ waitWithTimeout() {
     local func=$2
     local start=$(date +%s)
 
-    while true
-    do
-        if $func; then
-            return 0
+    while true; do
+        $func
+        local status=$?
+
+        if [ "$status" -eq 0 ]; then
+            return 0   # success
+        elif [ "$status" -eq 2 ]; then
+            return 1   # fail immediately
         fi
 
         local now=$(date +%s)
         local elapsed=$((now - start))
-
         if [ "$elapsed" -ge "$seconds" ]; then
             echo "Timeout reached for $func!"
             return 1
@@ -35,20 +42,49 @@ waitWithTimeout() {
     done
 }
 
+waitForImageLoad() {
+    local luma
+    luma=$(import -window root miff:- | convert miff:- -resize 1x1! -format "%[fx:100*luma]" info:)
+
+    local luma_int=${luma%.*}
+    [ "$luma_int" -lt 93 ]
+}
+
 waitForLoad() {
     local loaded
     loaded=$(curl -s "$BASE_URL/status")
-    [ "$loaded" = "true" ]
+
+    if [ "$loaded" = "retry" ]; then
+        return 2
+    elif [ -n "$loaded" ]; then
+        return 0
+    else
+        return 1
+    fi
 }
 
 waitForInfo() {
     INFO=$(curl -s "$BASE_URL/info")
-    [ -n "$INFO" ]
+
+    if [ "$INFO" = "retry" ]; then
+        return 2
+    elif [ -n "$INFO" ]; then
+        return 0
+    else
+        return 1
+    fi
 }
 
 waitForScreenshotReady() {
     READY=$(curl -s "$BASE_URL/ready")
-    [ -n "$READY" ]
+
+    if [ "$READY" = "retry" ]; then
+        return 2
+    elif [ -n "$READY" ]; then
+        return 0
+    else
+        return 1
+    fi
 }
 
 ###############################################################################
@@ -63,7 +99,7 @@ restartFirefox() {
     sleep 1
 
     firefox --width "$SIZE" --height "$SIZE" --profile "$PROFILE_DIR" "$URL" &
-    sleep 3
+    sleep 10
 }
 
 ###############################################################################
@@ -108,7 +144,14 @@ runScraper() {
                 break
             fi
 
-            import -window root "$SCREENSHOT_DIR/$INFO/$post.png"
+            if [ "$PROFILE" = "posts" ]; then
+                if ! waitWithTimeout "$TIMEOUT" waitForImageLoad; then
+                    restartFirefox
+                    return 1
+                fi
+            fi
+
+            import -window root "$SCREENSHOT_DIR/$INFO/$PROFILE-$post.png"
             curl -s "$BASE_URL/screenshot" > /dev/null
             echo "Captured post $post"
             post=$((post + 1))
@@ -124,7 +167,7 @@ Xvfb :99 -screen 0 ${SIZE}x${SIZE}x24 &
 sleep 1
 
 firefox --width "$SIZE" --height "$SIZE" --profile "$PROFILE_DIR" "$URL" &
-sleep 3
+sleep 5
 
 ###############################################################################
 # Supervising Loop (always restart from beginning on failure)

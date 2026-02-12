@@ -10,9 +10,11 @@
         const HEADER_SIZE = 158;
         const POST_SIZE = Math.min(window.innerHeight, window.innerWidth);
 
+        const profile = "{{ profile }}";
         const accounts = {{ accounts|tojson }};
 
         const socket = io();
+        socket.emit("join", profile);
 
         let iframes = [];
         const waitForLoad = () => {
@@ -50,8 +52,15 @@
             });
         };
 
+        const emit = (event, data = undefined) => {
+            socket.emit(event, {
+                profile,
+                data
+            });
+        }
+
         waitForLoad().then(async () => {
-            socket.emit("load");
+            emit("load");
 
             let pos = 0;
             for (const [i, iframe] of iframes.entries()) {
@@ -59,7 +68,7 @@
                 window.scrollBy(0, HEADER_SIZE);
                 
                 const account = accounts[i];
-                socket.emit("account", account);
+                emit("account", account);
 
                 const rect = iframe.getBoundingClientRect();
                 let row = 1;
@@ -67,7 +76,7 @@
                 while ((row * POST_SIZE) < rect.height) {
                     for (let i = 0; i < 3; ++i) {
                         await new Promise(r => setTimeout(r, 1000));
-                        socket.emit("screenshot_ready");
+                        emit("screenshot_ready");
                         await waitForScreenshot();
                         window.scrollBy(POST_SIZE, 0);
                     }
@@ -76,10 +85,10 @@
                 }
                 pos += rect.height;
 
-                socket.emit("screenshot_finish");
+                emit("screenshot_finish");
             }
 
-            socket.emit("finish");
+            emit("finish");
         });
     </script>
 </head>

@@ -6,11 +6,13 @@ import os
 import schedule
 import shutil
 from skimage.metrics import structural_similarity
+import stat
 import subprocess
 import time
 
 PREVIOUS_DIR = os.path.join(".", "previous")
 OUTPUT_DIR = os.path.join("..", "output")
+
 
 with open('../config.json') as f:
     webhook_url = json.load(f)['webhook']
@@ -25,6 +27,12 @@ def cleanup_dir(parent_dir):
 
 
 def copy_dir(src, dest):
+    for root, dirs, files in os.walk(src):
+        for d in dirs:
+            os.chmod(os.path.join(root, d), stat.S_IRWXU)
+        for f in files:
+            os.chmod(os.path.join(root, f), stat.S_IRWXU)
+
     for dir in os.listdir(src):
         dirpath = os.path.join(src, dir)
         if not os.path.isdir(dirpath):

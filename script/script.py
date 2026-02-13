@@ -1,12 +1,12 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import cv2
 from discord_webhook import DiscordWebhook
+from elevate import elevate
 import json
 import os
 import schedule
 import shutil
 from skimage.metrics import structural_similarity
-import stat
 import subprocess
 import time
 
@@ -27,12 +27,6 @@ def cleanup_dir(parent_dir):
 
 
 def copy_dir(src, dest):
-    for root, dirs, files in os.walk(src):
-        for d in dirs:
-            os.chmod(os.path.join(root, d), stat.S_IRWXU)
-        for f in files:
-            os.chmod(os.path.join(root, f), stat.S_IRWXU)
-
     for dir in os.listdir(src):
         dirpath = os.path.join(src, dir)
         if not os.path.isdir(dirpath):
@@ -159,6 +153,7 @@ def job(notify=True):
     print("Job finished!")
 
 subprocess.run(["docker", "compose", "up", "-d", "server"])
+elevate()
 job(False)
 
 schedule.every(30).to(90).minutes.do(job)

@@ -47,7 +47,7 @@ waitForImageLoad() {
     luma=$(import -window root miff:- | convert miff:- -resize 1x1! -format "%[fx:100*luma]" info:)
 
     local luma_int=${luma%.*}
-    [ "$luma_int" -lt 93 ]
+    [ "$luma_int" -lt 93 ] || [ "$luma_int" -gt 97 ]
 }
 
 waitForLoad() {

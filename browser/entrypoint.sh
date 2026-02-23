@@ -1,6 +1,10 @@
 #!/bin/sh
 set -e
 
+###############################################################################
+# Config
+###############################################################################
+
 BASE_URL="http://server:5000"
 SCREENSHOT_DIR="/output"
 SIZE=1920
@@ -8,8 +12,25 @@ TIMEOUT=$((15 * 60))
 
 URL="$BASE_URL/accounts/$PROFILE"
 PROFILE_DIR="/profiles/$PROFILE"
+
 curl() {
     command curl -H "X-Profile: $PROFILE" "$@"
+}
+
+###############################################################################
+# Xvfb Helpers
+###############################################################################
+
+ensureXvfb() {
+    local display_num="${DISPLAY#:}"
+    local socket="/tmp/.X11-unix/X${display_num}"
+
+    Xvfb "$DISPLAY" -screen 0 "${SIZE}x${SIZE}x24" &
+
+    # Wait until the X socket appears
+    while [ ! -e "$socket" ]; do
+        sleep 1
+    done
 }
 
 ###############################################################################
@@ -163,8 +184,7 @@ runScraper() {
 # Setup
 ###############################################################################
 
-Xvfb :99 -screen 0 ${SIZE}x${SIZE}x24 &
-sleep 1
+ensureXvfb
 
 firefox --width "$SIZE" --height "$SIZE" --profile "$PROFILE_DIR" "$URL" &
 sleep 5

@@ -10,7 +10,7 @@ RUN printf "Package: firefox*\nPin: release o=LP-PPA-mozillateam\nPin-Priority: 
     > /etc/apt/preferences.d/mozilla-firefox
 
 RUN apt-get update && \
-    apt-get install -y firefox xvfb imagemagick curl && \
+    apt-get install -y firefox dbus-x11 xvfb imagemagick curl && \
     rm -rf /var/lib/apt/lists/*
 
 COPY profiles /profiles

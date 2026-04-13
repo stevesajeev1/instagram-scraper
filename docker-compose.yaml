@@ -3,6 +3,8 @@ services:
     build:
       context: ./browser
       dockerfile: Dockerfile
+    security_opt:
+      - seccomp:unconfined
     volumes:
       - ./output:/output
     environment:
